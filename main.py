@@ -8,8 +8,8 @@ meme_man = cv.cvtColor(meme_man, cv.COLOR_BGR2BGRA)
 # Resize Meme Man
 meme_man = cv.resize(meme_man, (370, 370), interpolation=cv.INTER_AREA)
 
-xOffset = -90
-yOffset = -160
+# For meme_man placement
+scaleOffset = 2
 
 # Make empty meme man alpha image
 meme_man_alpha = np.zeros((meme_man.shape[0], meme_man.shape[1], 4), dtype='uint8')
@@ -17,9 +17,11 @@ meme_man_alpha = np.zeros((meme_man.shape[0], meme_man.shape[1], 4), dtype='uint
 meme_man_height, meme_man_width, meme_man_c = meme_man.shape
 for i in range(0, meme_man_height):
     for j in range(0, meme_man_width):
+        # Don't copy over values with an alpha of 0
         if meme_man[i, j][3] != 0:
             meme_man_alpha[i, j] = meme_man[i, j]
 
+# Split meme_man_alpha
 b, g, r, a = cv.split(meme_man_alpha)
 
 
@@ -58,12 +60,31 @@ while True:
             x = landmarks.part(n).x
             y = landmarks.part(n).y
             cv.circle(frame, (x, y), 4, (255, 0, 0), -1)
-        x = landmarks.part(0).x + xOffset
-        y = landmarks.part(0).y + yOffset
-        print(landmarks.part(0))
+
+        x = landmarks.part(0).x
+        y = landmarks.part(0).y
+
+        # Get Distance between top and bottom of face
+        yTop = landmarks.part(27).y
+        yBottom = landmarks.part(8).y
+        distance = np.sqrt((landmarks.part(8).x - landmarks.part(27).x)**2 + (landmarks.part(8).y - landmarks.part(27).y) ** 2)
+
+
+        # Resize meme man to match face size
+        b, g, r, a = cv.split(cv.resize(meme_man_alpha, (int(distance) * scaleOffset, int(distance) * scaleOffset), interpolation=cv.INTER_AREA))
+
+        x = x - int(np.sqrt((landmarks.part(17).x - landmarks.part(21).x)**2 + (landmarks.part(17).y - landmarks.part(21).y) ** 2))
+        y = y - a.shape[1] // 2
+
+        # Frame with only meme_man
         frame_meme_man = np.zeros((frame.shape[0], frame.shape[1], 4), dtype='uint8')
+
         _, mask = cv.threshold(a, 0, 255, cv.THRESH_BINARY)
+
+
+
         try:
+            # Make the mask the same dimensions as the frame
             mask_full_size = np.zeros((frame.shape[0], frame.shape[1]), dtype='uint8')
             mask_full_size[y:mask.shape[1] + y, x:mask.shape[0] + x] = mask[:, :]
 
@@ -72,13 +93,13 @@ while True:
 
             frame = cv.bitwise_and(frame, frame, mask=mask_full_size)
 
-            frame_meme_man[y:meme_man_height + y, x:meme_man_width + x, 0] = b
-            frame_meme_man[y:meme_man_height + y, x:meme_man_width + x, 1] = g
-            frame_meme_man[y:meme_man_height + y, x:meme_man_width + x, 2] = r
+            frame_meme_man[y:mask.shape[0] + y, x:mask.shape[1] + x, 0] = b
+            frame_meme_man[y:mask.shape[0] + y, x:mask.shape[1] + x, 1] = g
+            frame_meme_man[y:mask.shape[0] + y, x:mask.shape[1] + x, 2] = r
         except:
             pass
 
-    cv.imshow('Output', frame_meme_man+frame)
+    cv.imshow('Output', frame_meme_man + frame)
 
     key = cv.waitKey(1)
     if key == 27:
