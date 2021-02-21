@@ -56,10 +56,10 @@ while True:
         landmarks = predictor(gray, face)
 
         # Place circles
-        for n in range(0, 68):
-            x = landmarks.part(n).x
-            y = landmarks.part(n).y
-            cv.circle(frame, (x, y), 4, (255, 0, 0), -1)
+        # for n in range(0, 68):
+        #     x = landmarks.part(n).x
+        #     y = landmarks.part(n).y
+        #     cv.circle(frame, (x, y), 4, (255, 0, 0), -1)
 
         x = landmarks.part(0).x
         y = landmarks.part(0).y
@@ -70,7 +70,7 @@ while True:
         distance = np.sqrt((landmarks.part(8).x - landmarks.part(27).x)**2 + (landmarks.part(8).y - landmarks.part(27).y) ** 2)
 
 
-        # Resize meme man to match face size
+        # Resize meme man to match face size and split
         b, g, r, a = cv.split(cv.resize(meme_man_alpha, (int(distance) * scaleOffset, int(distance) * scaleOffset), interpolation=cv.INTER_AREA))
 
         x = x - int(np.sqrt((landmarks.part(17).x - landmarks.part(21).x)**2 + (landmarks.part(17).y - landmarks.part(21).y) ** 2))
@@ -79,9 +79,8 @@ while True:
         # Frame with only meme_man
         frame_meme_man = np.zeros((frame.shape[0], frame.shape[1], 4), dtype='uint8')
 
+        # Turn alpha channel of meme_man to a mask
         _, mask = cv.threshold(a, 0, 255, cv.THRESH_BINARY)
-
-
 
         try:
             # Make the mask the same dimensions as the frame
@@ -93,9 +92,8 @@ while True:
 
             frame = cv.bitwise_and(frame, frame, mask=mask_full_size)
 
-            frame_meme_man[y:mask.shape[0] + y, x:mask.shape[1] + x, 0] = b
-            frame_meme_man[y:mask.shape[0] + y, x:mask.shape[1] + x, 1] = g
-            frame_meme_man[y:mask.shape[0] + y, x:mask.shape[1] + x, 2] = r
+            channels = cv.merge([b, g, r])
+            frame_meme_man[y:mask.shape[0] + y, x:mask.shape[1] + x, 0:3] = channels
         except:
             pass
 
