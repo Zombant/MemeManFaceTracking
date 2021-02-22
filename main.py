@@ -2,7 +2,17 @@ import cv2 as cv
 import numpy as np
 import dlib
 
-meme_man = cv.imread('meme_man.png', cv.IMREAD_UNCHANGED)
+def rotate(img, angle, rotPoint=None):
+    (height, width) = img.shape[:2]
+
+    if rotPoint is None:
+        rotPoint = (width // 2, height // 2)
+    rotMat = cv.getRotationMatrix2D(rotPoint, angle, 1.0)
+    dimensions = (width, height)
+
+    return cv.warpAffine(img, rotMat, dimensions)
+
+meme_man = cv.imread('meme_man2.png', cv.IMREAD_UNCHANGED)
 meme_man = cv.cvtColor(meme_man, cv.COLOR_BGR2BGRA)
 
 # Resize Meme Man
@@ -46,10 +56,10 @@ while True:
 
     # For all detected faces
     for face in faces:
-        x1 = face.left()
-        y1 = face.top()
-        x2 = face.right()
-        y2 = face.bottom()
+        # x1 = face.left()
+        # y1 = face.top()
+        # x2 = face.right()
+        # y2 = face.bottom()
         # cv.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
 
         # Detect Landmark Points on a face
@@ -71,7 +81,10 @@ while True:
 
 
         # Resize meme man to match face size and split
-        b, g, r, a = cv.split(cv.resize(meme_man_alpha, (int(distance) * scaleOffset, int(distance) * scaleOffset), interpolation=cv.INTER_AREA))
+        resized = cv.resize(meme_man_alpha, (int(distance) * scaleOffset, int(distance) * scaleOffset), interpolation=cv.INTER_AREA)
+        resized = rotate(resized, np.arctan((landmarks.part(27).x - landmarks.part(8).x) / (landmarks.part(27).y - landmarks.part(8).y)) * 180 / np.pi)
+        print(np.arctan((landmarks.part(27).x - landmarks.part(8).x) / (landmarks.part(27).y - landmarks.part(8).y)) * 180 / np.pi)
+        b, g, r, a = cv.split(resized)
 
         x = x - int(np.sqrt((landmarks.part(17).x - landmarks.part(21).x)**2 + (landmarks.part(17).y - landmarks.part(21).y) ** 2))
         y = y - a.shape[1] // 2
