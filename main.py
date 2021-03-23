@@ -1,6 +1,7 @@
 import cv2 as cv
-import numpy as np
 import dlib
+import numpy as np
+
 
 def rotate(img, angle, rotPoint=None):
     (height, width) = img.shape[:2]
