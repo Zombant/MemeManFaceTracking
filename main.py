@@ -83,7 +83,7 @@ while True:
         # Resize meme man to match face size and split
         resized = cv.resize(meme_man_alpha, (int(distance) * scaleOffset, int(distance) * scaleOffset), interpolation=cv.INTER_AREA)
         resized = rotate(resized, np.arctan((landmarks.part(27).x - landmarks.part(8).x) / (landmarks.part(27).y - landmarks.part(8).y)) * 180 / np.pi)
-        print(np.arctan((landmarks.part(27).x - landmarks.part(8).x) / (landmarks.part(27).y - landmarks.part(8).y)) * 180 / np.pi)
+        #print(np.arctan((landmarks.part(27).x - landmarks.part(8).x) / (landmarks.part(27).y - landmarks.part(8).y)) * 180 / np.pi)
         b, g, r, a = cv.split(resized)
 
         x = x - int(np.sqrt((landmarks.part(17).x - landmarks.part(21).x)**2 + (landmarks.part(17).y - landmarks.part(21).y) ** 2))
